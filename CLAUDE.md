@@ -15,16 +15,18 @@ No test suite is configured.
 
 ## Architecture
 
-This is a single-component React app (Vite + React 19). All logic lives in `src/App.jsx` — there is no routing, no state management library, and no component split.
+React + Vite app with no routing and no state management library. State lives in `App.jsx` and flows down via props; events flow up via callbacks.
 
-**State in `App.jsx`:**
-- `transactions` — array of `{ id, description, amount, type, category, date }`. `amount` is stored as a **string** (this causes the known summation bug where `reduce` concatenates instead of adding).
-- Form fields (`description`, `amount`, `type`, `category`) drive the Add Transaction form.
-- `filterType` / `filterCategory` control which rows are shown in the table.
+**Component tree:**
+```
+App
+├── Summary          — calculates and displays totalIncome, totalExpenses, balance
+├── TransactionForm  — owns form field state, calls onAdd(transaction) on submit
+└── TransactionList  — owns filterType/filterCategory state, renders the table
+```
 
-**Known intentional issues (course material):**
-- `amount` stored as string → `totalIncome`/`totalExpenses` use string concatenation instead of numeric addition, producing garbage values in the summary cards.
-- "Freelance Work" seed data is typed as `"expense"` but categorized as `"salary"`.
-- UI and code structure are intentionally rough — the course progressively refactors them.
+**Data model:** `transactions` is an array of `{ id, description, amount, type, category, date }` where `amount` is a number, `type` is `"income"` or `"expense"`, and `category` is one of `["food", "housing", "utilities", "transport", "entertainment", "salary", "other"]`.
+
+**Data flow:** `App` holds `transactions` and passes it to all three children. `TransactionForm` receives `onAdd` and calls it with a fully-formed transaction object (amount already coerced to `Number`). `TransactionList` and `Summary` are read-only — they only receive `transactions`.
 
 **Styling:** plain CSS in `src/App.css`, no CSS framework. Key classes: `.income-amount` (green), `.expense-amount` (red), `.balance-amount`.
